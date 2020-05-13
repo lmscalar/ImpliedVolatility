@@ -311,8 +311,7 @@ class Options(GetData):
     def plot_raw_vol(self, x, y, contract, put_cal):
 
         df = pd.DataFrame(columns=['x', 'y'])
-        df
-        .['x'] = x
+        df['x'] = x
         df['y'] = y
 
         plt.figure()
