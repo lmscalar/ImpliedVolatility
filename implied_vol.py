@@ -1,5 +1,6 @@
 """
-project:  Hartree Test Data Sample
+@author Luis Molina,  May 11 2020
+project:  Implied Volatility for NYMEX Nat Gas
 program: implied_vol.py
 purpose:
 1. Scrape option prices from CME website.
