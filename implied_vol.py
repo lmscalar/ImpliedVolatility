@@ -73,9 +73,6 @@ class GetData:
         self.SRC_VOL_FILE = '{0}_vol_surface_{1}.pkl'.format(self.futures_sym.lower() , self.tradeDate)
         self.expiry_cal = 'expiry_cal_ng.xlsx'
 
-
-
-
     def open_browser(self):
 
         self.browser = Browser('chrome', self.executable_path, headless=False)
@@ -218,48 +215,48 @@ class Options(GetData):
         self.option_model = 'Black76'
         self.tradeDate = tradeDate
 
-    def GBlackScholes(self, CPflag, S, X, T, r, b, V):
+    def GBlackScholes(self, cpflag, S, X, T, r, b, V):
         '''Generalized Black76 European options model for Futures.'''
         Gd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
         Gd2 = Gd1 - V * np.sqrt(T)
 
-        if CPflag == "Call":
+        if cpflag == "Call":
             return S * np.exp((b - r) * T) * ss.norm.cdf(Gd1) - X * np.exp(-r * T) * ss.norm.cdf(Gd2)
         else:
             return X * np.exp(-r * T) * ss.norm.cdf(-Gd2) - S * np.exp((b - r) * T) * ss.norm.cdf(-Gd1)
 
-    def GDelta(self, CPflag, S, X, T, r, b, V):
-        '''Generalized Black_Scholes delta for Options on futures.'''
+    def delta(self, cpflag, S, X, T, r, b, V):
+        """Generalized Black_Scholes delta for Options on futures."""
 
         Gd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
 
-        if CPflag == "Call":
-            GDelta = np.exp((b - r) * T) * ss.norm.cdf(Gd1)
+        if cpflag == "Call":
+            gdelta = np.exp((b - r) * T) * ss.norm.cdf(Gd1)
         else:
-            GDelta = -np.exp((b - r) * T) * ss.norm.cdf(-Gd1)
+            gdelta = -np.exp((b - r) * T) * ss.norm.cdf(-Gd1)
 
-        return GDelta
+        return gdelta
 
     def GVega(self, S, X, T, r, b, V):
 
         Vd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
 
-        return (S * np.exp((b - r) * T) * ss.norm.pdf(Vd1) * np.sqrt(T))
+        return S * np.exp((b - r) * T) * ss.norm.pdf(Vd1) * np.sqrt(T)
 
-    def GImpliedVolatility(self, CPflag, S, X, T, r, b, cm, epsilon):
-        '''Calculate implied volatility using Newton-Raphson method with initial vol seed.'''
+    def GImpliedVolatility(self, cpflag, S, X, T, r, b, cm, epsilon):
+        """Calculate implied volatility using Newton-Raphson method with initial vol seed."""
 
         vi = np.sqrt(abs(np.log(S / X) + r * T) * 2 / T)  # initial vol
 
-        ci = self.GBlackScholes(CPflag, S, X, T, r, b, vi)
+        ci = self.GBlackScholes(cpflag, S, X, T, r, b, vi)
         vegai = self.GVega(S, X, T, r, b, vi)
-        min_Diff = abs(cm - ci)
+        min_diff = abs(cm - ci)
 
-        while (abs(cm - ci) >= epsilon) & (abs(cm - ci) <= min_Diff):
+        while (abs(cm - ci) >= epsilon) & (abs(cm - ci) <= min_diff):
             vi = vi - (ci - cm) / vegai
-            ci = self.GBlackScholes(CPflag, S, X, T, r, b, vi)
+            ci = self.GBlackScholes(cpflag, S, X, T, r, b, vi)
             vegai = self.GVega(S, X, T, r, b, vi)
-            min_Diff = abs(cm - ci)
+            min_diff = abs(cm - ci)
         if abs(cm - ci) < epsilon:
             vi = vi
         else:
@@ -345,11 +342,15 @@ class Options(GetData):
         delta = []
         # iterate through each option type and price to generate Implied Vol
         for i in range(n):
-            CPflag = df['PUT/CALL'].iloc[i]; F = df['UNDERLYING'].iloc[i]; K = df['STRIKE'].iloc[i]
-            T = float(df['DTE'].iloc[i])/365.0; r = rate; cm = df['SETTLE'].iloc[i]
-            b= 0   # for futures
-            iv = self.GImpliedVolatility(CPflag, F, K, T, r, b, cm, epsilon)
-            dlt = self.GDelta(CPflag, F, K, T, r, b, iv)
+            cpflag = df['PUT/CALL'].iloc[i]
+            F = df['UNDERLYING'].iloc[i]
+            K = df['STRIKE'].iloc[i]
+            T = float(df['DTE'].iloc[i])/365.0
+            r = rate;  cm = df['SETTLE'].iloc[i]
+            b = 0   # for futures
+
+            iv = self.GImpliedVolatility(cpflag, F, K, T, r, b, cm, epsilon)
+            dlt = self.delta(cpflag, F, K, T, r, b, iv)
             vols.append(iv)
             delta.append(dlt)
 
@@ -366,7 +367,7 @@ class Options(GetData):
         df.to_pickle("{0}/{1}".format(ROOT_DIR, self.SRC_VOL_FILE))
 
         try:
-            result = self.plot_vol_surface(x,y, contract, put_call)
+            self.plot_vol_surface(x, y, contract, put_call)
         except  ValueError:
             self.plot_raw_vol(x, y, contract, put_call)
 
