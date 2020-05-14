@@ -310,17 +310,22 @@ class Options(GetData):
         except ValueError:
             logging.info("ValueError!")
 
-    def plot_raw_vol(self, x, y, contract, put_cal):
+    def plot_raw_vol(self, x, y, contract, put_call):
 
         df = pd.DataFrame(columns=['x', 'y'])
         df['x'] = x
         df['y'] = y
 
-        plt.figure()
-        plt.scatter(x, y)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        plt.title("Implied Vol for NG European Options = {0}, moneyness plot= log(K/F): tradeDate: {1}".format(contract,                                                                                                     self.tradeDate))
+        ax.plot(x, y, 'o', label="{0} Implied Vol".format(put_call))
+        ax.scatter(x, y)
+        plt.xlabel("Moneyness: log(K/F)")
+        plt.ylabel("Implied Vol.")
+        plt.axvline(0, color='k')
         plt.show()
 
-    def vol_surface(self, put_call='Call'):
+    def vol_surface(self, put_call='Call', raw_vol=True):
         """Generate vol surface using Moneyness: log(Strike/Underlying)"""
 
         contract = input("Enter Natural Gas Contract (e.g. {0}Q20): ".format(self.futures_sym)).upper()
@@ -332,8 +337,8 @@ class Options(GetData):
             option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
         except :
             logging.info("Value error, probably empty file.")
-        option_prices = option_prices[option_prices['moneyness'] <= 0.5]
-        df = option_prices[option_prices['moneyness'] >= -0.5]
+        option_prices = option_prices[option_prices['moneyness'] <= 0.75]
+        df = option_prices[option_prices['moneyness'] >= -0.75]
 
         rate = 0.007  # low interest rate constant for now,  not material in this low rate environment
         epsilon = 0.001
@@ -371,9 +376,9 @@ class Options(GetData):
 
         df.to_pickle("{0}/{1}".format(ROOT_DIR, self.SRC_VOL_FILE))
 
-        try:
+        if raw_vol == False:
             self.plot_vol_surface(x, y, contract, put_call)
-        except  ValueError:
+        else:
             self.plot_raw_vol(x, y, contract, put_call)
 
         return df
@@ -399,7 +404,7 @@ if __name__ == '__main__':
     #table.head()
 
     # opt = d.get_cme_settles()
-    opt1 = d.vol_surface(put_call='Call')
+    opt1 = d.vol_surface(put_call='Call', raw_vol=False)
     xlwings.view(opt1)
 
 
