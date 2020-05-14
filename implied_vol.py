@@ -330,8 +330,6 @@ class Options(GetData):
 
         # filter for moneyness
         try:
-            xlwings.view(option_prices['STRIKE'])
-            xlwings.view(option_prices['UNDERLYING'])
             option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
         except :
             logging.info("Value error, probably empty file.")
