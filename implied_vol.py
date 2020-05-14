@@ -335,8 +335,7 @@ class Options(GetData):
         # filter for moneyness
 
         option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
-
-        logging.info("Value error, probably empty file.")
+        logging.info("Calculated moneyness")
         option_prices = option_prices[option_prices['moneyness'] <= 0.75]
         df = option_prices[option_prices['moneyness'] >= -0.75]
 
