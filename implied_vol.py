@@ -2,27 +2,29 @@
 @author Luis Molina,  May 11 2020
 project:  Implied Volatility for NYMEX Nat Gas
 program: implied_vol.py
-purpose:
-1. Scrape option prices from CME website.
-2. Download prices and save to python pickle file. Downloaded options expiration calendar
-3. Attach underlying prices to the options prices by future maturity contract, attach expiration dates
-4. Calculate implied volatilities for each option in file,  assuming a small interest rate for discouting
-5. Filter option prices based on cut-off of moneyness
-4. In the interest of time I decided to build the surface using calls only or puts only
-5. We save files to pickle files,  the code checks to see if the source file exists, if it does not it goes to the CME ftp site
-   and downloads the csv file  (had a lot of issues with scraping the actual site,  code is included to show how I would
-   have approached the actual scraping,  CME seems to have some restrictions around scraping their quote pages, some of the
-   python libraries were unable to get valid response (error code http 404)
-6. Utilized an OLS (Ordinary Least squares model provided by statsmodels python library to fit the vol surface to regression line
-7. Program prompts user for contract to evaluate:  e.g. 'NGN20'
-8.  User can provide any contract maturity to generate vol curve.
+FUNCTIONALITY:
+    1. Scrape option prices from CME website.
+    2. Download prices and save to python pickle file. Downloaded options expiration calendar
+    3. Attach underlying prices to the options prices by future maturity contract, attach expiration dates
+    4. Calculate implied volatilities for each option in file,  assuming a small interest rate for discouting
+    5. Filter option prices based on cut-off of moneyness
+    4. In the interest of time I decided to build the surface using calls only or puts only
+    5. We save files to pickle files,  the code checks to see if the source file exists, if it does not it goes to the CME ftp site
+       and downloads the csv file  (had a lot of issues with scraping the actual site,  code is included to show how I would
+       have approached the actual scraping,  CME seems to have some restrictions around scraping their quote pages, some of the
+       python libraries were unable to get valid response (error code http 404)
+    6. Utilized an OLS (Ordinary Least squares model provided by statsmodels python library to fit the vol surface to regression line
+    7. Program prompts user for contract to evaluate:  e.g. 'NGN20'
+    8.  User can provide any contract maturity to generate vol curve.
 
-Improvements if I had more time:
-1.  Add utilize a database server to create Tables (schema) to hold data
-2.  Use both Puts and Calls to generate surface, possibly a polynomial based model, risk-reversals, straddles, strangles
-3.  Create a surface using moneyness and maturity to show 3D structure and termstructure of volatility skew
-4.  More error checking,  unit testing
-5.  etc.
+TODO:
+    Improvements if I had more time:
+    1.  Upload data directly to a database table, one for options and for futures
+    2.  Use both Puts and Calls to generate surface, possibly a polynomial based model, risk-reversals, straddles, strangles
+    3.  Create a surface using moneyness and maturity to show 3D structure and termstructure of volatility skew
+    4.  More error checking,  unit testing
+    5.  Generalize to caculate Implied vols for European and American options
+    5.  etc.
 
 """
 
