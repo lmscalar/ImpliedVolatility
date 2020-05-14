@@ -185,9 +185,12 @@ class GetData:
         ng_fut.index = [s for s in ng_fut['CONTRACT']]
 
         ng_opt['CONTRACT'] = [contract.split(" ")[0].replace(self.options_sym, self.futures_sym) for contract in ng_opt['CONTRACT'] ]
+
+        # attach underlying price to options dataframe
         ng_opt['UNDERLYING'] = [ng_fut.loc[row, 'SETTLE'] for row in ng_fut['CONTRACT'] for contract in ng_opt['CONTRACT'] if row==contract]
         expiry_file = pd.read_excel(self.expiry_cal, header=0, index_col=0)
 
+        # attach expiry date to options dataframe
         ng_opt['EXPIRY'] = [expiry_file.loc[row, 'Settlement'] for row in expiry_file.index for contract in ng_opt['CONTRACT'] if row==contract]
         ng_opt['EXPIRY'] = pd.to_datetime(ng_opt['EXPIRY'])
 
