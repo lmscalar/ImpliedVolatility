@@ -26,8 +26,6 @@ Improvements if I had more time:
 
 """
 
-
-
 import requests
 from requests.exceptions import HTTPError
 import pandas as pd
@@ -202,14 +200,15 @@ class GetData:
         idx = range(len(ng_opt))
         ng_opt.index = idx
 
-        ng_opt = ng_opt[['CONTRACT', 'TRADEDATE', 'UNDERLYING', 'PUT/CALL', 'UNDERLYING', 'STRIKE', 'EXPIRY', 'DTE',   'OPEN', 'HIGH', 'LOW', 'LAST', 'PT CHG', 'SETTLE']]
+        ng_opt = ng_opt[['CONTRACT', 'TRADEDATE', 'UNDERLYING', 'PUT/CALL', 'STRIKE', 'EXPIRY',
+                         'DTE',   'OPEN', 'HIGH', 'LOW', 'LAST', 'PT CHG', 'SETTLE']]
 
         ng_opt.to_pickle("{0}/{1}".format(ROOT_DIR, self.SRC_FILENAME))
 
         return ng_opt
 
 
-# Options Class inherets from GetData base class
+# Options Class inherits from GetData base class
 class Options(GetData):
     def __init__(self, tradeDate):
         super(Options, self).__init__(tradeDate)
@@ -327,7 +326,12 @@ class Options(GetData):
         option_prices = option_prices[option_prices['CONTRACT']==contract]
 
         # filter for moneyness
-        option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
+        try:
+            xlwings.view(option_prices['STRIKE'])
+            xlwings.view(option_prices['UNDERLYING'])
+            option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
+        except :
+            logging.info("Value error, probably empty file.")
         option_prices = option_prices[option_prices['moneyness'] <= 0.5]
         df = option_prices[option_prices['moneyness'] >= -0.5]
 
@@ -357,6 +361,7 @@ class Options(GetData):
 
         # xlwings.view(df)
         # df = df[df['CONTRACT','DTE','STRIKE', 'moneyness', 'implied_vol']]
+
         df.to_pickle("{0}/{1}".format(ROOT_DIR, self.SRC_VOL_FILE))
 
         try:
@@ -378,7 +383,7 @@ class Options(GetData):
 
 if __name__ == '__main__':
 
-    tradeDate = '2020-05-12'
+    tradeDate = '2020-05-13'
     d = Options(tradeDate)
     d.options_sym = 'LN'
     d.futures_sym = 'NG'
@@ -387,10 +392,9 @@ if __name__ == '__main__':
     #table.head()
 
     # opt = d.get_cme_settles()
-    opt1 = d.vol_surface(put_call='Put')
+    opt1 = d.vol_surface(put_call='Call')
     xlwings.view(opt1)
-    
-    d.read_vol_surface()
+
 
 
 
