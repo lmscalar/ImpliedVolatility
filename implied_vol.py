@@ -333,12 +333,12 @@ class Options(GetData):
         option_prices = option_prices[option_prices['CONTRACT']==contract]
 
         # filter for moneyness
-        try:
-            option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
-        except :
-            logging.info("Value error, probably empty file.")
-            option_prices = option_prices[option_prices['moneyness'] <= 0.75]
-            df = option_prices[option_prices['moneyness'] >= -0.75]
+
+        option_prices['moneyness'] = np.log(option_prices['STRIKE'] / option_prices['UNDERLYING'])
+
+        logging.info("Value error, probably empty file.")
+        option_prices = option_prices[option_prices['moneyness'] <= 0.75]
+        df = option_prices[option_prices['moneyness'] >= -0.75]
 
         rate = 0.007  # low interest rate constant for now,  not material in this low rate environment
         epsilon = 0.001
