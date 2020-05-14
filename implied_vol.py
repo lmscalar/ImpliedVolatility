@@ -351,10 +351,13 @@ class Options(GetData):
             r = rate;  cm = df['SETTLE'].iloc[i]
             b = 0   # for futures
 
-            iv = self.GImpliedVolatility(cpflag, F, K, T, r, b, cm, epsilon)
-            dlt = self.delta(cpflag, F, K, T, r, b, iv)
-            vols.append(iv)
-            delta.append(dlt)
+            try:
+                iv = self.GImpliedVolatility(cpflag, F, K, T, r, b, cm, epsilon)
+                dlt = self.delta(cpflag,  F,  K,  T,  r,  b,  iv)
+                vols.append(iv)
+                delta.append(dlt)
+            except OverflowError:
+                logging.info("Unable to converge to an implied vol.")
 
         df['implied_vol'] = vols
         df['delta'] = delta
