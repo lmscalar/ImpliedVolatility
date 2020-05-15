@@ -221,7 +221,6 @@ class Options(GetData):
         '''Generalized Black76 European options model for Futures.'''
         Gd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
         Gd2 = Gd1 - V * np.sqrt(T)
-
         if cpflag == "Call":
             return S * np.exp((b - r) * T) * ss.norm.cdf(Gd1) - X * np.exp(-r * T) * ss.norm.cdf(Gd2)
         else:
@@ -229,17 +228,15 @@ class Options(GetData):
 
     def delta(self, cpflag, S, X, T, r, b, V):
         """Generalized Black_Scholes delta for Options on futures."""
-
         Gd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
-
         if cpflag == "Call":
             gdelta = np.exp((b - r) * T) * ss.norm.cdf(Gd1)
         else:
             gdelta = -np.exp((b - r) * T) * ss.norm.cdf(-Gd1)
-
         return gdelta
 
-    def GVega(self, S, X, T, r, b, V):
+    def gvega(self, S, X, T, r, b, V):
+        """Generalized Vega for Black-Scholes."""
 
         Vd1 = (np.log(S / X) + (b + V ** 2 / 2) * T) / (V * np.sqrt(T))
 
@@ -251,13 +248,13 @@ class Options(GetData):
         vi = np.sqrt(abs(np.log(S / X) + r * T) * 2 / T)  # initial vol
 
         ci = self.GBlackScholes(cpflag, S, X, T, r, b, vi)
-        vegai = self.GVega(S, X, T, r, b, vi)
+        vegai = self.gvega(S, X, T, r, b, vi)
         min_diff = abs(cm - ci)
 
         while (abs(cm - ci) >= epsilon) & (abs(cm - ci) <= min_diff):
             vi = vi - (ci - cm) / vegai
             ci = self.GBlackScholes(cpflag, S, X, T, r, b, vi)
-            vegai = self.GVega(S, X, T, r, b, vi)
+            vegai = self.gvega(S, X, T, r, b, vi)
             min_diff = abs(cm - ci)
         if abs(cm - ci) < epsilon:
             vi = vi
@@ -307,6 +304,7 @@ class Options(GetData):
             plt.axvline(0, color='k')
             plt.show()
 
+            print(prstd)
         except ValueError:
             logging.info("ValueError!")
 
