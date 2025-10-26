@@ -36,12 +36,25 @@ import scipy.stats as ss
 import json
 import time
 import urllib
-from splinter import Browser
+# Optional: Browser automation (splinter is deprecated, using selenium as alternative)
+try:
+    from splinter import Browser
+    SPLINTER_AVAILABLE = True
+except ImportError:
+    SPLINTER_AVAILABLE = False
+    print("Warning: splinter not available. Browser automation features disabled.")
 
 import logging
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
-import xlwings
+# Optional: xlwings for Excel viewing
+try:
+    import xlwings
+    XLWINGS_AVAILABLE = True
+except ImportError:
+    XLWINGS_AVAILABLE = False
+    print("Warning: xlwings not available. Excel viewing features disabled.")
+
 from definitions import ROOT_DIR
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
@@ -76,7 +89,8 @@ class GetData:
         self.expiry_cal = 'expiry_cal_ng.xlsx'
 
     def open_browser(self):
-
+        if not SPLINTER_AVAILABLE:
+            raise ImportError("splinter is not available. Install it with: pip install splinter")
         self.browser = Browser('chrome', self.executable_path, headless=False)
 
     def build_url(self):
@@ -187,7 +201,7 @@ class GetData:
 
         # attach underlying price to options dataframe
         ng_opt['UNDERLYING'] = [ng_fut.loc[row, 'SETTLE'] for row in ng_fut['CONTRACT'] for contract in ng_opt['CONTRACT'] if row==contract]
-        expiry_file = pd.read_excel(self.expiry_cal, header=0, index_col=0)
+        expiry_file = pd.read_excel(self.expiry_cal, header=0, index_col=0, engine='openpyxl')
 
         # attach expiry date to options dataframe
         ng_opt['EXPIRY'] = [expiry_file.loc[row, 'Settlement'] for row in expiry_file.index for contract in ng_opt['CONTRACT'] if row==contract]
@@ -196,7 +210,7 @@ class GetData:
         tradeDate = pd.to_datetime(ng_opt['TRADEDATE'].iloc[0])
 
         ng_opt['DTE'] = (ng_opt["EXPIRY"] - tradeDate).dt.days
-        ng_opt['PUT/CALL'] = np.where(ng_opt['PUT/CALL'].loc[:] == 'C', 'Call', 'Put' )
+        ng_opt['PUT/CALL'] = np.where(ng_opt['PUT/CALL'] == 'C', 'Call', 'Put' )
         ng_opt = ng_opt[ng_opt['SETTLE'] >= 0.005]
 
         idx = range(len(ng_opt))
@@ -402,7 +416,11 @@ if __name__ == '__main__':
 
     # opt = d.get_cme_settles()
     opt1 = d.vol_surface(put_call='Call', raw_vol=False)
-    xlwings.view(opt1)
+    if XLWINGS_AVAILABLE:
+        xlwings.view(opt1)
+    else:
+        print("xlwings not available. Displaying data summary instead:")
+        print(opt1.head())
 
 
 
